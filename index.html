@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Login</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    form {
+      display: none;
+    }
+
+    form.active {
+      display: block;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: #4f46e5;
+      color: white;
+      cursor: pointer;
+    }
+
+    .toggle {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: #4f46e5;
+    }
+
+    .message {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
+
+    .dashboard {
+      display: none;
+      text-align: center;
+    }
+
+    .dashboard h2 {
+      margin-bottom: 10px;
+    }
+
+    .logout {
+      margin-top: 20px;
+      background: #ef4444;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <form id="loginForm" class="active">
+      <h2>Login</h2>
+      <div class="message" id="loginMessage"></div>
+      <input type="email" id="loginEmail" placeholder="Email" required>
+      <input type="password" id="loginPassword" placeholder="Senha" required>
+      <button type="submit">Entrar</button>
+      <div class="toggle" onclick="showRegister()">Não tem conta? Cadastre-se</div>
+    </form>
+
+    <form id="registerForm">
+      <h2>Cadastro</h2>
+      <div class="message" id="registerMessage"></div>
+      <input type="text" id="registerName" placeholder="Nome" required>
+      <input type="email" id="registerEmail" placeholder="Email" required>
+      <input type="password" id="registerPassword" placeholder="Senha" required>
+      <button type="submit">Cadastrar</button>
+      <div class="toggle" onclick="showLogin()">Já tem conta? Entrar</div>
+    </form>
+
+    <div class="dashboard" id="dashboard">
+      <h2>Bem-vindo</h2>
+      <p id="userName"></p>
+      <button class="logout" onclick="logout()">Sair</button>
+    </div>
+
+  </div>
+
+  <script>
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const dashboard = document.getElementById("dashboard");
+
+    const users = JSON.parse(localStorage.getItem("users")) || [];
+    let loggedUser = JSON.parse(localStorage.getItem("loggedUser"));
+
+    if (loggedUser) {
+      showDashboard(loggedUser);
+    }
+
+    loginForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const email = loginEmail.value;
+      const password = loginPassword.value;
+
+      const user = users.find(
+        u => u.email === email && u.password === password
+      );
+
+      if (user) {
+        localStorage.setItem("loggedUser", JSON.stringify(user));
+        showDashboard(user);
+      } else {
+        showMessage("loginMessage", "Email ou senha inválidos", "error");
+      }
+    });
+
+    registerForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const name = registerName.value;
+      const email = registerEmail.value;
+      const password = registerPassword.value;
+
+      if (users.find(u => u.email === email)) {
+        showMessage("registerMessage", "Email já cadastrado", "error");
+        return;
+      }
+
+      const newUser = { name, email, password };
+      users.push(newUser);
+      localStorage.setItem("users", JSON.stringify(users));
+
+      showMessage("registerMessage", "Cadastro realizado com sucesso", "success");
+      registerForm.reset();
+
+      setTimeout(showLogin, 1500);
+    });
+
+    function showRegister() {
+      loginForm.classList.remove("active");
+      registerForm.classList.add("active");
+    }
+
+    function showLogin() {
+      registerForm.classList.remove("active");
+      loginForm.classList.add("active");
+    }
+
+    function showDashboard(user) {
+      loginForm.style.display = "none";
+      registerForm.style.display = "none";
+      dashboard.style.display = "block";
+      userName.textContent = user.name;
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedUser");
+      location.reload();
+    }
+
+    function showMessage(id, text, type) {
+      const element = document.getElementById(id);
+      element.textContent = text;
+      element.className = `message ${type}`;
+    }
+  </script>
+
+</body>
+</html>
